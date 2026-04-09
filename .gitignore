@@ -1,0 +1,9 @@
+bin/
+.env
+*.exe
+*.log
+*.opus
+recordings/
+test_data/
+result_back_to.wav
+temp_converted.opus
