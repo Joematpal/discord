@@ -206,9 +206,13 @@ func (vc *VoiceConnection) completeHandshake() error {
 					return fmt.Errorf("voice: xchacha: %w", err)
 				}
 			default:
-				return fmt.Errorf("voice: unsupported mode: %s", sd.Mode)
+				// Legacy modes (xsalsa20_poly1305, etc.) — no AEAD init,
+				// ListenAudio will pass payload through without transport decrypt.
+				vc.log.Warn("legacy encryption mode, no transport AEAD", "mode", sd.Mode)
 			}
-			vc.log.Info("transport cipher initialized", "mode", sd.Mode, "nonce_size", vc.aead.NonceSize())
+			if vc.aead != nil {
+				vc.log.Info("transport cipher initialized", "mode", sd.Mode, "nonce_size", vc.aead.NonceSize())
+			}
 			gotSessionDesc = true
 
 		case OpcodeDavePrepareEpoch:

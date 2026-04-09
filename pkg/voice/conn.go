@@ -204,7 +204,11 @@ func (vc *VoiceConnection) ListenAudio(ctx context.Context) error {
 	}
 
 	recvbuf := make([]byte, 2048)
-	nonce := make([]byte, vc.aead.NonceSize())
+	nonceSize := 12 // default GCM nonce size
+	if vc.aead != nil {
+		nonceSize = vc.aead.NonceSize()
+	}
+	nonce := make([]byte, nonceSize)
 	pktCount := 0
 
 	for {
@@ -238,54 +242,63 @@ func (vc *VoiceConnection) ListenAudio(ctx context.Context) error {
 			continue
 		}
 
-		// Compute AAD for _rtpsize modes.
-		cc := int(recvbuf[0] & 0x0F)
-		hasExt := (recvbuf[0] & 0x10) != 0
-		baseHeaderLen := 12 + (4 * cc)
-		if rlen < baseHeaderLen {
-			continue
-		}
+		var plain []byte
 
-		aadLen := baseHeaderLen
-		extPayloadBytes := 0
-		if hasExt {
-			if rlen < baseHeaderLen+4 {
+		if vc.aead != nil {
+			// Transport decrypt (production path).
+			cc := int(recvbuf[0] & 0x0F)
+			hasExt := (recvbuf[0] & 0x10) != 0
+			baseHeaderLen := 12 + (4 * cc)
+			if rlen < baseHeaderLen {
 				continue
 			}
-			extLenWords := int(binary.BigEndian.Uint16(recvbuf[baseHeaderLen+2 : baseHeaderLen+4]))
-			extPayloadBytes = extLenWords * 4
-			aadLen = baseHeaderLen + 4
-		}
 
-		if rlen < aadLen+4 {
-			continue
-		}
+			aadLen := baseHeaderLen
+			extPayloadBytes := 0
+			if hasExt {
+				if rlen < baseHeaderLen+4 {
+					continue
+				}
+				extLenWords := int(binary.BigEndian.Uint16(recvbuf[baseHeaderLen+2 : baseHeaderLen+4]))
+				extPayloadBytes = extLenWords * 4
+				aadLen = baseHeaderLen + 4
+			}
 
-		// Transport decrypt.
-		payload := recvbuf[aadLen:rlen]
-		if len(payload) < 4 {
-			continue
-		}
-		nonceCounter := payload[len(payload)-4:]
-		ciphertext := payload[:len(payload)-4]
-
-		// Clear nonce, write counter into first 4 bytes.
-		for i := range nonce {
-			nonce[i] = 0
-		}
-		binary.LittleEndian.PutUint32(nonce[:4], binary.LittleEndian.Uint32(nonceCounter))
-
-		plain, err := vc.aead.Open(nil, nonce, ciphertext, recvbuf[:aadLen])
-		if err != nil {
-			continue // not audio or wrong key
-		}
-
-		// Strip decrypted extension payload.
-		if extPayloadBytes > 0 {
-			if len(plain) < extPayloadBytes {
+			if rlen < aadLen+4 {
 				continue
 			}
-			plain = plain[extPayloadBytes:]
+
+			payload := recvbuf[aadLen:rlen]
+			if len(payload) < 4 {
+				continue
+			}
+			nonceCounter := payload[len(payload)-4:]
+			ciphertext := payload[:len(payload)-4]
+
+			for i := range nonce {
+				nonce[i] = 0
+			}
+			binary.LittleEndian.PutUint32(nonce[:4], binary.LittleEndian.Uint32(nonceCounter))
+
+			var err error
+			plain, err = vc.aead.Open(nil, nonce, ciphertext, recvbuf[:aadLen])
+			if err != nil {
+				continue
+			}
+
+			if extPayloadBytes > 0 {
+				if len(plain) < extPayloadBytes {
+					continue
+				}
+				plain = plain[extPayloadBytes:]
+			}
+		} else {
+			// No transport encryption (test path): extract payload after RTP header.
+			pkt, err := ParseRTP(recvbuf[:rlen])
+			if err != nil {
+				continue
+			}
+			plain = pkt.Payload
 		}
 
 		pktCount++

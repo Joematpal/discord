@@ -42,7 +42,7 @@ type Encoder struct {
 	bitrate    int // target bitrate in bits/s
 	complexity int // 0–10
 
-	celt *celtEncoder
+	celt *celtEnc
 }
 
 // NewEncoder creates an encoder with the given sample rate, channels, and application.
@@ -66,7 +66,7 @@ func NewEncoder(sampleRate, channels int, app Application) (*Encoder, error) {
 		application: app,
 		bitrate:     64000,
 		complexity:  5,
-		celt:        newCELTEncoder(sampleRate, channels, frameSize),
+		celt:        newCeltEnc(sampleRate, channels, frameSize),
 	}, nil
 }
 
@@ -193,5 +193,5 @@ func (e *Encoder) chooseConfig(frameSize int) uint8 {
 // Reset resets the encoder state.
 func (e *Encoder) Reset() {
 	frameSize := e.sampleRate / 50
-	e.celt = newCELTEncoder(e.sampleRate, e.channels, frameSize)
+	e.celt = newCeltEnc(e.sampleRate, e.channels, frameSize)
 }

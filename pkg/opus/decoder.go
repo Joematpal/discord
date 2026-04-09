@@ -27,10 +27,10 @@ type Decoder struct {
 	sampleRate int
 	channels   int
 
-	celt *celtDecoder
+	celt *celtDec
 
 	// Packet loss concealment state.
-	lastGoodSamples []float64
+	lastGoodSamples []float32
 	plcCount        int
 }
 
@@ -46,7 +46,7 @@ func NewDecoder(sampleRate, channels int) (*Decoder, error) {
 	return &Decoder{
 		sampleRate: sampleRate,
 		channels:   channels,
-		celt:       newCELTDecoder(sampleRate, channels, frameSize),
+		celt:       newCeltDec(sampleRate, channels, frameSize),
 	}, nil
 }
 
@@ -67,7 +67,6 @@ func (d *Decoder) Decode(data []byte, frameSize int, fec bool) ([]int16, error) 
 	}
 	out := make([]int16, len(pcmFloat))
 	for i, s := range pcmFloat {
-		// Clip to [-1, 1] and scale to int16.
 		if s > 1.0 {
 			s = 1.0
 		} else if s < -1.0 {
@@ -92,11 +91,10 @@ func (d *Decoder) DecodeFloat(data []byte, frameSize int, fec bool) ([]float32, 
 	toc := pkt.TOC
 	mode := toc.Mode()
 
-	var pcm64 []float64
+	var pcm []float32
 
 	switch mode {
 	case ModeCELT:
-		// Set up CELT decoder with correct frame size.
 		dur := toc.FrameDuration()
 		samplesPerFrame := int(dur.Seconds() * float64(d.sampleRate))
 		if samplesPerFrame == 0 {
@@ -104,47 +102,45 @@ func (d *Decoder) DecodeFloat(data []byte, frameSize int, fec bool) ([]float32, 
 		}
 		d.celt.frameSize = samplesPerFrame
 
-		pcm64 = make([]float64, 0, frameSize*d.channels)
+		// Recompute LM for this frame size.
+		shortMdctSize := d.sampleRate / 400
+		m := samplesPerFrame / shortMdctSize
+		lm := 0
+		for (1 << uint(lm+1)) <= m {
+			lm++
+		}
+		d.celt.lm = lm
+
+		pcm = make([]float32, 0, frameSize*d.channels)
 		for _, frame := range pkt.Frames {
 			if len(frame) == 0 {
-				// DTX: silence.
-				pcm64 = append(pcm64, make([]float64, samplesPerFrame*d.channels)...)
+				pcm = append(pcm, make([]float32, samplesPerFrame*d.channels)...)
 				continue
 			}
 			rc := NewRangeDecoder(frame)
 			decoded := d.celt.decode(rc, len(frame))
-			pcm64 = append(pcm64, decoded...)
+			pcm = append(pcm, decoded...)
 		}
 
 	case ModeSILK:
-		// SILK decode placeholder: output silence.
-		pcm64 = make([]float64, frameSize*d.channels)
+		pcm = make([]float32, frameSize*d.channels)
 
 	case ModeHybrid:
-		// Hybrid decode placeholder: output silence.
-		pcm64 = make([]float64, frameSize*d.channels)
+		pcm = make([]float32, frameSize*d.channels)
 	}
 
 	// Truncate or pad to requested frameSize.
 	wanted := frameSize * d.channels
-	if len(pcm64) > wanted {
-		pcm64 = pcm64[:wanted]
+	if len(pcm) > wanted {
+		pcm = pcm[:wanted]
 	}
-	for len(pcm64) < wanted {
-		pcm64 = append(pcm64, 0)
-	}
-
-	// Convert float64 → float32.
-	out := make([]float32, len(pcm64))
-	for i, v := range pcm64 {
-		out[i] = float32(v)
+	for len(pcm) < wanted {
+		pcm = append(pcm, 0)
 	}
 
-	// Save for PLC.
-	d.lastGoodSamples = pcm64
+	d.lastGoodSamples = pcm
 	d.plcCount = 0
-
-	return out, nil
+	return pcm, nil
 }
 
 // decodePLC performs packet loss concealment by fading the last good frame.
@@ -154,13 +150,12 @@ func (d *Decoder) decodePLC(frameSize int) ([]float32, error) {
 	out := make([]float32, n)
 
 	if d.lastGoodSamples == nil {
-		return out, nil // no prior frame, output silence
+		return out, nil
 	}
 
-	// Fade out over successive lost packets.
-	gain := math.Pow(0.85, float64(d.plcCount))
+	gain := float32(math.Pow(0.85, float64(d.plcCount)))
 	for i := 0; i < n && i < len(d.lastGoodSamples); i++ {
-		out[i] = float32(d.lastGoodSamples[i] * gain)
+		out[i] = d.lastGoodSamples[i] * gain
 	}
 
 	return out, nil
@@ -169,7 +164,7 @@ func (d *Decoder) decodePLC(frameSize int) ([]float32, error) {
 // Reset resets the decoder state.
 func (d *Decoder) Reset() {
 	frameSize := d.sampleRate / 50
-	d.celt = newCELTDecoder(d.sampleRate, d.channels, frameSize)
+	d.celt = newCeltDec(d.sampleRate, d.channels, frameSize)
 	d.lastGoodSamples = nil
 	d.plcCount = 0
 }

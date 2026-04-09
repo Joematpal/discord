@@ -73,7 +73,7 @@ func TestDecoder_PLCFade(t *testing.T) {
 	}
 	// Successive PLC calls should produce fading output.
 	_, _ = d.Decode(SilenceFrame, 960, false)
-	d.lastGoodSamples = make([]float64, 960)
+	d.lastGoodSamples = make([]float32, 960)
 	for i := range d.lastGoodSamples {
 		d.lastGoodSamples[i] = 0.5
 	}
