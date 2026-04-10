@@ -14,25 +14,25 @@ import (
 	"sync/atomic"
 	"time"
 
-	dlog "discord/pkg/log"
+	dlog "github.com/joematpal/discord/pkg/log"
 )
 
 // Gateway opcodes.
 const (
-	OpDispatch        = 0
-	OpHeartbeat       = 1
-	OpIdentify        = 2
+	OpDispatch         = 0
+	OpHeartbeat        = 1
+	OpIdentify         = 2
 	OpVoiceStateUpdate = 4
-	OpResume          = 6
-	OpReconnect       = 7
-	OpInvalidSession  = 9
-	OpHello           = 10
-	OpHeartbeatACK    = 11
+	OpResume           = 6
+	OpReconnect        = 7
+	OpInvalidSession   = 9
+	OpHello            = 10
+	OpHeartbeatACK     = 11
 )
 
 // Intents required for voice.
 const (
-	IntentGuilds          = 1 << 0
+	IntentGuilds           = 1 << 0
 	IntentGuildVoiceStates = 1 << 7
 )
 
@@ -54,10 +54,10 @@ type WSDialer interface {
 
 // Payload is the gateway message envelope.
 type Payload struct {
-	Op int              `json:"op"`
-	D  json.RawMessage  `json:"d"`
-	S  *int             `json:"s,omitempty"`
-	T  string           `json:"t,omitempty"`
+	Op int             `json:"op"`
+	D  json.RawMessage `json:"d"`
+	S  *int            `json:"s,omitempty"`
+	T  string          `json:"t,omitempty"`
 }
 
 // HelloData from opcode 10.
@@ -81,10 +81,10 @@ type IdentifyProperties struct {
 
 // ReadyData from t=READY.
 type ReadyData struct {
-	V                int             `json:"v"`
-	User             ReadyUser       `json:"user"`
-	SessionID        string          `json:"session_id"`
-	ResumeGatewayURL string          `json:"resume_gateway_url"`
+	V                int       `json:"v"`
+	User             ReadyUser `json:"user"`
+	SessionID        string    `json:"session_id"`
+	ResumeGatewayURL string    `json:"resume_gateway_url"`
 }
 
 // ReadyUser is the bot user from READY.
@@ -134,13 +134,13 @@ type InteractionHandler func(interaction json.RawMessage) (response json.RawMess
 
 // Config configures the gateway client.
 type Config struct {
-	Token     string    // Bot token (no "Bot " prefix needed, added automatically)
-	Intents   int       // Gateway intents bitfield
-	Dialer    WSDialer  // WebSocket dialer
-	Logger    Logger // structured logger (defaults to slog.Default())
-	OS        string    // Reported OS (default "linux")
-	Browser   string    // Reported browser (default "discord")
-	Device    string    // Reported device (default "discord")
+	Token   string   // Bot token (no "Bot " prefix needed, added automatically)
+	Intents int      // Gateway intents bitfield
+	Dialer  WSDialer // WebSocket dialer
+	Logger  Logger   // structured logger (defaults to slog.Default())
+	OS      string   // Reported OS (default "linux")
+	Browser string   // Reported browser (default "discord")
+	Device  string   // Reported device (default "discord")
 
 	// InteractionHandler handles INTERACTION_CREATE events from the gateway.
 	// The response is POSTed to the interaction callback URL via REST.
@@ -157,8 +157,8 @@ type Client struct {
 	resumeGatewayURL string
 	userID           string
 
-	seq     atomic.Int64
-	cancel  context.CancelFunc
+	seq    atomic.Int64
+	cancel context.CancelFunc
 
 	mu       sync.RWMutex
 	handlers map[string][]DispatchHandler
@@ -167,9 +167,9 @@ type Client struct {
 	voiceStates sync.Map
 
 	// Voice join coordination.
-	voiceMu        sync.Mutex
-	voiceStateCh   chan *VoiceState
-	voiceServerCh  chan *VoiceServerUpdate
+	voiceMu       sync.Mutex
+	voiceStateCh  chan *VoiceState
+	voiceServerCh chan *VoiceServerUpdate
 }
 
 // New creates a gateway client.

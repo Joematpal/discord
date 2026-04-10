@@ -9,9 +9,9 @@ import (
 	"sync"
 	"syscall"
 
-	"discord/pkg/gateway"
-	"discord/pkg/opus"
-	"discord/pkg/voice"
+	"github.com/joematpal/discord/pkg/gateway"
+	"github.com/joematpal/discord/pkg/opus"
+	"github.com/joematpal/discord/pkg/voice"
 
 	"github.com/gorilla/websocket"
 	"github.com/urfave/cli/v3"

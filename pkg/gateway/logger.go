@@ -1,6 +1,6 @@
 package gateway
 
-import dlog "discord/pkg/log"
+import dlog "github.com/joematpal/discord/pkg/log"
 
 // Logger is an alias for the shared Logger interface.
 type Logger = dlog.Logger

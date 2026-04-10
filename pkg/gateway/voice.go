@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"discord/pkg/voice"
+	"github.com/joematpal/discord/pkg/voice"
 )
 
 // VoiceSession holds the info needed to connect to a voice gateway,

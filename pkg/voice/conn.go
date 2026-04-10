@@ -11,9 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"discord/pkg/dave"
-	dlog "discord/pkg/log"
-
+	"github.com/joematpal/discord/pkg/dave"
+	dlog "github.com/joematpal/discord/pkg/log"
 )
 
 // ---------------------------------------------------------------------------
@@ -97,9 +96,9 @@ type VoiceConfig struct {
 	Endpoint  string // voice server WebSocket endpoint (from Voice Server Update)
 
 	// Audio pipeline.
-	Decoder   OpusDecoder
-	Encoder   OpusEncoder
-	Handler   AudioHandler
+	Decoder OpusDecoder
+	Encoder OpusEncoder
+	Handler AudioHandler
 
 	// OpusHandler receives raw Opus packets. If set, Decoder and Handler are not used.
 	OpusHandler OpusHandler
@@ -136,18 +135,18 @@ type VoiceConnection struct {
 	config VoiceConfig
 	log    dlog.Logger
 
-	state         State
-	ssrc          uint32
-	daveSession   *dave.Session
-	daveReady     atomic.Bool
-	secretKey     []byte       // transport encryption key from Session Description
-	encryptMode   string      // encryption mode
-	aead          cipher.AEAD // transport AEAD cipher
-	wsSeqAck      atomic.Int64 // last voice WS sequence number (for heartbeat)
+	state       State
+	ssrc        uint32
+	daveSession *dave.Session
+	daveReady   atomic.Bool
+	secretKey   []byte       // transport encryption key from Session Description
+	encryptMode string       // encryption mode
+	aead        cipher.AEAD  // transport AEAD cipher
+	wsSeqAck    atomic.Int64 // last voice WS sequence number (for heartbeat)
 
-	ws    WSConn
-	wsMu  sync.Mutex // gorilla/websocket doesn't support concurrent writes
-	udp   UDPConn
+	ws   WSConn
+	wsMu sync.Mutex // gorilla/websocket doesn't support concurrent writes
+	udp  UDPConn
 
 	cancel context.CancelFunc
 

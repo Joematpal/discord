@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"discord/pkg/opus"
+	"github.com/joematpal/discord/pkg/opus"
 
 	"github.com/urfave/cli/v3"
 )
@@ -36,10 +36,10 @@ func encodeCmd() *cli.Command {
 		ArgsUsage: "<input.wav>",
 		Flags: []cli.Flag{
 			&cli.IntFlag{
-				Name:  "bitrate",
+				Name:    "bitrate",
 				Aliases: []string{"b"},
-				Value: 96000,
-				Usage: "target bitrate in bits/s",
+				Value:   96000,
+				Usage:   "target bitrate in bits/s",
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
@@ -111,16 +111,16 @@ func decodeCmd() *cli.Command {
 		ArgsUsage: "<input.ogg>",
 		Flags: []cli.Flag{
 			&cli.IntFlag{
-				Name:  "rate",
+				Name:    "rate",
 				Aliases: []string{"r"},
-				Value: 48000,
-				Usage: "output sample rate",
+				Value:   48000,
+				Usage:   "output sample rate",
 			},
 			&cli.IntFlag{
-				Name:  "channels",
+				Name:    "channels",
 				Aliases: []string{"c"},
-				Value: 1,
-				Usage: "output channel count (1 or 2)",
+				Value:   1,
+				Usage:   "output channel count (1 or 2)",
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
@@ -440,12 +440,12 @@ func makeOpusHead(channels uint8, inputRate uint32) []byte {
 	binary.LittleEndian.PutUint16(h[10:12], 312) // pre-skip
 	binary.LittleEndian.PutUint32(h[12:16], inputRate)
 	binary.LittleEndian.PutUint16(h[16:18], 0) // output gain
-	h[18] = 0 // channel mapping family
+	h[18] = 0                                  // channel mapping family
 	return h
 }
 
 func makeOpusTags() []byte {
-	vendor := "discord/pkg/opus"
+	vendor := "github.com/joematpal/discord/pkg/opus"
 	t := make([]byte, 8+4+len(vendor)+4)
 	copy(t[0:8], "OpusTags")
 	binary.LittleEndian.PutUint32(t[8:12], uint32(len(vendor)))

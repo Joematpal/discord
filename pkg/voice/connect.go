@@ -10,7 +10,7 @@ import (
 	"net"
 	"time"
 
-	"discord/pkg/dave"
+	"github.com/joematpal/discord/pkg/dave"
 
 	"golang.org/x/crypto/chacha20poly1305"
 )
@@ -233,8 +233,8 @@ func (vc *VoiceConnection) completeHandshake() error {
 
 		case OpcodeDaveTransition:
 			var payload struct {
-				TransitionID uint16 `json:"transition_id"`
-				ProtocolVersion int `json:"protocol_version"`
+				TransitionID    uint16 `json:"transition_id"`
+				ProtocolVersion int    `json:"protocol_version"`
 			}
 			json.Unmarshal(msg.Data, &payload)
 			vc.log.Info("dave prepare transition", "transition_id", payload.TransitionID, "version", payload.ProtocolVersion)
@@ -379,7 +379,7 @@ func (vc *VoiceConnection) sendDAVEKeyPackage(kp []byte) {
 func (vc *VoiceConnection) ipDiscovery() (ip string, port int, err error) {
 	// Send: 74-byte packet with type=0x1, length=70, SSRC.
 	buf := make([]byte, 74)
-	binary.BigEndian.PutUint16(buf[0:2], 0x1)    // type: request
+	binary.BigEndian.PutUint16(buf[0:2], 0x1)     // type: request
 	binary.BigEndian.PutUint16(buf[2:4], 70)      // length
 	binary.BigEndian.PutUint32(buf[4:8], vc.ssrc) // SSRC
 

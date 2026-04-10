@@ -124,7 +124,7 @@ func makeOpusHead(channels uint8, inputRate uint32, preSkip uint16) []byte {
 }
 
 func makeOpusTags() []byte {
-	vendor := "discord/pkg/voice"
+	vendor := "github.com/joematpal/discord/pkg/voice"
 	t := make([]byte, 8+4+len(vendor)+4)
 	copy(t[0:8], "OpusTags")
 	binary.LittleEndian.PutUint32(t[8:12], uint32(len(vendor)))
@@ -149,7 +149,7 @@ func init() {
 	}
 }
 
-func oggCRC(data []byte) uint32  { return oggCRCUpdate(0, data) }
+func oggCRC(data []byte) uint32 { return oggCRCUpdate(0, data) }
 func oggCRCUpdate(crc uint32, data []byte) uint32 {
 	for _, b := range data {
 		crc = (crc << 8) ^ oggCRCTable[byte(crc>>24)^b]
