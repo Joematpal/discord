@@ -531,6 +531,10 @@ func loadEnv(path string) {
 		}
 		k = strings.TrimSpace(k)
 		v = strings.TrimSpace(v)
+		// Strip inline comments.
+		if idx := strings.Index(v, " #"); idx >= 0 {
+			v = strings.TrimSpace(v[:idx])
+		}
 		// Don't override existing env vars.
 		if os.Getenv(k) == "" {
 			os.Setenv(k, v)

@@ -9,4 +9,7 @@ require (
 	golang.org/x/crypto v0.50.0
 )
 
-require golang.org/x/sys v0.43.0 // indirect
+require (
+	github.com/pion/opus v0.0.0-20260408170506-085f78c96784 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+)

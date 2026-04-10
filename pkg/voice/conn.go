@@ -450,6 +450,11 @@ func (vc *VoiceConnection) wsWrite(messageType int, data []byte) error {
 	return vc.ws.WriteMessage(messageType, data)
 }
 
+// SSRCToUserID looks up the user ID for a given SSRC (from Speaking events).
+func (vc *VoiceConnection) SSRCToUserID(ssrc uint32) string {
+	return vc.ssrcToUserID(ssrc)
+}
+
 // ssrcToUserID looks up the user ID for a given SSRC (from Speaking events).
 func (vc *VoiceConnection) ssrcToUserID(ssrc uint32) string {
 	if v, ok := vc.ssrcUsers.Load(ssrc); ok {

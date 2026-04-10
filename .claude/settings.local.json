@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.discord.com)",
+      "WebFetch(domain:discord.com)",
+      "Bash(curl -s \"https://discord.com/developers/docs/interactions/application-commands\")"
+    ]
+  }
+}

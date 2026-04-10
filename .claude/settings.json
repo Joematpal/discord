@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://raw.githubusercontent.com/discord/discord-api-docs/main/docs/interactions/Receiving_and_Responding.md\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/discord/discord-api-docs/main/docs/interactions/Message_Components.md\")",
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Read(//c/Users/joseph/go/pkg/mod/github.com/bwmarrin/discordgo@v0.29.0/**)",
+      "Bash(grep -E \"\\\\.go$\")",
+      "Bash(go run:*)",
+      "Read(//c/Users/joseph/go/src/github.com/joematpal/discordgo/**)",
+      "Bash(grep -rn \"xchacha\\\\|poly1305\\\\|secretKey\\\\|secret_key\\\\|decrypt.*rtp\\\\|openPacket\\\\|decryptPacket\\\\|Nonce\\\\|nonce\" c:/Users/joseph/go/src/github.com/joematpal/discordgo/voice.go c:/Users/joseph/go/src/github.com/joematpal/discordgo/voice*.go)",
+      "Read(//c/Users/joseph/**)",
+      "Bash(ls c:/Users/joseph/go/src/github.com/joematpal/discord/*.log)",
+      "WebFetch(domain:www.rfc-editor.org)",
+      "Bash(go list:*)",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}
